@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IP Address Lookup</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f4;
+      color: #1c1c1a;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 800px; margin: 0 auto; }
+
+    h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #5f5e5a; margin-bottom: 1.5rem; }
+
+    .card {
+      background: #ffffff;
+      border: 0.5px solid rgba(0,0,0,0.12);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-title { font-size: 13px; font-weight: 500; margin-bottom: 12px; }
+
+    label { font-size: 12px; color: #5f5e5a; display: block; margin-bottom: 4px; }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 0.5px solid rgba(0,0,0,0.2);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      background: #fff;
+      color: #1c1c1a;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, textarea:focus { border-color: rgba(0,0,0,0.4); }
+
+    textarea { resize: vertical; font-family: "SF Mono", "Fira Code", monospace; }
+
+    .row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+    .row .field { flex: 1; min-width: 200px; }
+
+    button {
+      padding: 8px 16px;
+      border: 0.5px solid rgba(0,0,0,0.2);
+      border-radius: 8px;
+      background: transparent;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      color: #1c1c1a;
+      white-space: nowrap;
+      transition: background 0.1s;
+    }
+    button:hover { background: #f1efe8; }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.primary { background: #1c1c1a; color: #fff; border-color: #1c1c1a; }
+    button.primary:hover { background: #3a3a38; }
+
+    .hint { font-size: 12px; color: #5f5e5a; margin-top: 8px; }
+
+    .alert {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 1rem;
+    }
+    .alert-error   { background: #fcebeb; border: 0.5px solid #f09595; color: #791f1f; }
+    .alert-success { background: #eaf3de; border: 0.5px solid #97c459; color: #27500a; }
+    .alert-info    { background: #e6f1fb; border: 0.5px solid #85b7eb; color: #0c447c; }
+
+    .metrics { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+    .metric {
+      background: #f1efe8;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      color: #5f5e5a;
+    }
+    .metric span { display: block; font-size: 20px; font-weight: 500; color: #1c1c1a; }
+    .metric span.green  { color: #27500a; }
+    .metric span.red    { color: #791f1f; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      text-align: left;
+      font-weight: 500;
+      font-size: 11px;
+      color: #5f5e5a;
+      padding: 6px 8px;
+      border-bottom: 0.5px solid rgba(0,0,0,0.15);
+    }
+    tbody tr { border-bottom: 0.5px solid rgba(0,0,0,0.08); }
+    tbody tr:hover { background: #f9f9f7; }
+    td { padding: 8px; vertical-align: middle; }
+    td.mono { font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge-found    { background: #eaf3de; color: #27500a; }
+    .badge-missing  { background: #fcebeb; color: #791f1f; }
+
+    .missing-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+    .table-wrap { overflow-x: auto; }
+
+    @media (prefers-color-scheme: dark) {
+      body       { background: #18181a; color: #e8e6e0; }
+      .card      { background: #222224; border-color: rgba(255,255,255,0.1); }
+      input, textarea, select { background: #2a2a2c; border-color: rgba(255,255,255,0.15); color: #e8e6e0; }
+      input:focus, textarea:focus { border-color: rgba(255,255,255,0.35); }
+      button     { color: #e8e6e0; border-color: rgba(255,255,255,0.2); }
+      button:hover { background: #2a2a2c; }
+      button.primary { background: #e8e6e0; color: #18181a; border-color: #e8e6e0; }
+      button.primary:hover { background: #cfcdc8; }
+      .metric    { background: #2a2a2c; color: #9e9d99; }
+      .metric span { color: #e8e6e0; }
+      .alert-error   { background: #2d1a1a; border-color: #a32d2d; color: #f09595; }
+      .alert-success { background: #1a2d1a; border-color: #3b6d11; color: #c0dd97; }
+      .alert-info    { background: #1a2540; border-color: #185fa5; color: #b5d4f4; }
+      .subtitle, label, .hint, thead th { color: #9e9d99; }
+      tbody tr:hover { background: #2a2a2c; }
+      .badge-found   { background: #1a2d1a; color: #c0dd97; }
+      .badge-missing { background: #2d1a1a; color: #f09595; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>IP Address Lookup</h1>
+  <p class="subtitle">Check whether IP addresses exist in your GitHub allowlist record</p>
+
+  <!-- Step 1 -->
+  <div class="card">
+    <p class="card-title">Step 1 — Load IP list from GitHub</p>
+    <div class="row">
+      <div class="field">
+        <label for="ghUrl">GitHub raw file URL</label>
+        <input id="ghUrl" type="url"
+          placeholder="https://raw.githubusercontent.com/Finsure/repo/main/ips.txt" />
+      </div>
+      <button class="primary" id="loadBtn" onclick="loadIPs()">Load IP list</button>
+    </div>
+    <p class="hint">
+      Go to your file on GitHub → click <strong>Raw</strong> → copy the URL.<br>
+      File format: one IP address per line. Lines starting with <code>#</code> are ignored.
+    </p>
+  </div>
+
+  <div id="loadStatus"></div>
+
+  <!-- Step 2 -->
+  <div class="card">
+    <p class="card-title">Step 2 — Search IP addresses</p>
+    <label for="searchInput">Enter IPs to check — one per line, or comma/space separated</label>
+    <textarea id="searchInput" rows="5"
+      placeholder="163.116.192.203&#10;103.110.176.98&#10;192.168.1.1, 10.0.0.1"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="primary" onclick="search()">Search</button>
+      <button onclick="clearAll()">Clear</button>
+    </div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="metrics" id="metrics" style="display:none"></div>
+
+  <!-- Results -->
+  <div id="results"></div>
+
+</div>
+
+<script>
+  let recordedIPs = new Set();
+  let loaded = false;
+
+  async function loadIPs() {
+    const url = document.getElementById('ghUrl').value.trim();
+    const box = document.getElementById('loadStatus');
+    const btn = document.getElementById('loadBtn');
+
+    if (!url) {
+      box.innerHTML = '<div class="alert alert-error">Please enter a GitHub raw file URL.</div>';
+      return;
+    }
+
+    btn.textContent = 'Loading...';
+    btn.disabled = true;
+    box.innerHTML = '';
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status} — make sure the URL points to a raw GitHub file`);
+      const text  = await res.text();
+      const lines = text.split(/\r?\n/)
+                        .map(l => l.trim())
+                        .filter(l => l && !l.startsWith('#'));
+
+      recordedIPs = new Set(lines.map(l => l.toLowerCase()));
+      loaded = true;
+      box.innerHTML = `<div class="alert alert-success">
+        Loaded <strong>${recordedIPs.size}</strong> IP record${recordedIPs.size !== 1 ? 's' : ''} successfully.
+      </div>`;
+    } catch (e) {
+      box.innerHTML = `<div class="alert alert-error">Failed to load: ${e.message}</div>`;
+    }
+
+    btn.textContent = 'Load IP list';
+    btn.disabled = false;
+  }
+
+  function parseIPs(raw) {
+    return [...new Set(
+      raw.split(/[\n,;\s]+/)
+         .map(s => s.trim())
+         .filter(s => s.length > 0)
+    )];
+  }
+
+  function search() {
+    const raw     = document.getElementById('searchInput').value.trim();
+    const results = document.getElementById('results');
+    const metrics = document.getElementById('metrics');
+
+    if (!raw) {
+      results.innerHTML = '<div class="alert alert-error">Please enter at least one IP address.</div>';
+      return;
+    }
+    if (!loaded) {
+      results.innerHTML = '<div class="alert alert-error">Please load the IP list from GitHub first (Step 1).</div>';
+      return;
+    }
+
+    const ips     = parseIPs(raw);
+    const found   = ips.filter(ip => recordedIPs.has(ip.toLowerCase()));
+    const missing = ips.filter(ip => !recordedIPs.has(ip.toLowerCase()));
+
+    metrics.style.display = 'flex';
+    metrics.innerHTML = `
+      <div class="metric"><span>${ips.length}</span>searched</div>
+      <div class="metric"><span class="green">${found.length}</span>in record</div>
+      <div class="metric"><span class="red">${missing.length}</span>not in record</div>
+    `;
+
+    const rows = ips.map(ip => {
+      const exists = recordedIPs.has(ip.toLowerCase());
+      return `<tr>
+        <td class="mono">${ip}</td>
+        <td><span class="badge ${exists ? 'badge-found' : 'badge-missing'}">${exists ? 'Found' : 'Not found'}</span></td>
+        <td style="font-size:12px;color:#5f5e5a">${exists
+          ? 'IP exists in the allowlist record'
+          : 'IP is NOT in the record — action may be required'}</td>
+      </tr>`;
+    }).join('');
+
+    const missingSection = missing.length > 0 ? `
+      <div class="card" style="margin-top:1rem">
+        <p class="card-title" style="color:#791f1f">IPs not in record (${missing.length})</p>
+        <div class="missing-list">
+          ${missing.map(ip => `<span class="badge badge-missing">${ip}</span>`).join('')}
+        </div>
+      </div>` : '';
+
+    results.innerHTML = `
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>IP Address</th><th>Status</th><th>Detail</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+      ${missingSection}
+    `;
+  }
+
+  function clearAll() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('results').innerHTML = '';
+    document.getElementById('metrics').style.display = 'none';
+  }
+</script>
+</body>
+</html>
