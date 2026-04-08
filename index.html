@@ -155,6 +155,10 @@
     <div class="row" style="margin-top:10px">
       <button class="primary" onclick="search()">Search</button>
       <button onclick="clearAll()">Clear</button>
+      <button id="downloadBtn" onclick="downloadAttackers()" style="
+        display:none;background:#a32d2d;color:#fff;
+        border-color:#a32d2d;margin-left:auto
+      ">Download confirmed attackers (0)</button>
     </div>
   </div>
 
@@ -230,11 +234,18 @@
         <td class="mono">
           <span style="display:flex;align-items:center;gap:8px">
             ${ip}
-            <button onclick="copyIP('${ip}', this)" title="Copy IP" style="
-              padding:2px 8px;font-size:11px;border-radius:6px;
-              border:0.5px solid rgba(0,0,0,0.2);background:transparent;
-              cursor:pointer;color:inherit;white-space:nowrap;min-width:48px
-            ">Copy</button>
+            <span style="display:flex;gap:4px">
+              <button onclick="copyIP('${ip}', this)" title="Copy IP" style="
+                padding:2px 8px;font-size:11px;border-radius:6px;
+                border:0.5px solid rgba(0,0,0,0.2);background:transparent;
+                cursor:pointer;color:inherit;white-space:nowrap;min-width:48px
+              ">Copy</button>
+              <button onclick="confirmAttack('${ip}', this)" title="Confirm Attack" style="
+                padding:2px 8px;font-size:11px;border-radius:6px;
+                border:0.5px solid #a32d2d;background:transparent;
+                cursor:pointer;color:#791f1f;white-space:nowrap;min-width:100px
+              ">Confirm Attack</button>
+            </span>
           </span>
         </td>
         <td><span class="badge ${exists ? 'badge-found' : 'badge-missing'}">${exists ? 'Found' : 'Not found'}</span></td>
@@ -268,6 +279,48 @@
     `;
   }
 
+  let confirmedAttackers = new Set();
+
+  function confirmAttack(ip, btn) {
+    const confirmed = window.confirm(`Confirm attack from IP: ${ip}\n\nAre you sure you want to flag this IP as an attacker?`);
+    if (confirmed) {
+      confirmedAttackers.add(ip);
+      btn.textContent = 'Attack Confirmed';
+      btn.style.background = '#a32d2d';
+      btn.style.color = '#fff';
+      btn.style.borderColor = '#a32d2d';
+      btn.disabled = true;
+
+      const row = btn.closest('tr');
+      if (row) row.style.background = '#2d1a1a';
+
+      updateDownloadBtn();
+    }
+  }
+
+  function updateDownloadBtn() {
+    const btn = document.getElementById('downloadBtn');
+    if (!btn) return;
+    if (confirmedAttackers.size > 0) {
+      btn.style.display = 'inline-block';
+      btn.textContent = `Download confirmed attackers (${confirmedAttackers.size})`;
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+
+  function downloadAttackers() {
+    if (confirmedAttackers.size === 0) return;
+    const content  = [...confirmedAttackers].join('\n');
+    const blob     = new Blob([content], { type: 'text/plain' });
+    const url      = URL.createObjectURL(blob);
+    const a        = document.createElement('a');
+    a.href         = url;
+    a.download     = `confirmed_attackers_${new Date().toISOString().slice(0,10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   function copyIP(ip, btn) {
     navigator.clipboard.writeText(ip).then(() => {
       btn.textContent = 'Copied!';
@@ -283,6 +336,8 @@
     document.getElementById('searchInput').value = '';
     document.getElementById('results').innerHTML = '';
     document.getElementById('metrics').style.display = 'none';
+    confirmedAttackers.clear();
+    updateDownloadBtn();
   }
 </script>
 </body>
