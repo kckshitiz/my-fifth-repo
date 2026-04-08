@@ -46,11 +46,9 @@
     }
 
     input:focus, textarea:focus { border-color: rgba(0,0,0,0.4); }
-
     textarea { resize: vertical; font-family: "SF Mono", "Fira Code", monospace; }
 
     .row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
-    .row .field { flex: 1; min-width: 200px; }
 
     button {
       padding: 8px 16px;
@@ -66,7 +64,6 @@
     }
     button:hover { background: #f1efe8; }
     button:active { transform: scale(0.98); }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
     button.primary { background: #1c1c1a; color: #fff; border-color: #1c1c1a; }
     button.primary:hover { background: #3a3a38; }
 
@@ -80,7 +77,6 @@
     }
     .alert-error   { background: #fcebeb; border: 0.5px solid #f09595; color: #791f1f; }
     .alert-success { background: #eaf3de; border: 0.5px solid #97c459; color: #27500a; }
-    .alert-info    { background: #e6f1fb; border: 0.5px solid #85b7eb; color: #0c447c; }
 
     .metrics { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
     .metric {
@@ -91,8 +87,8 @@
       color: #5f5e5a;
     }
     .metric span { display: block; font-size: 20px; font-weight: 500; color: #1c1c1a; }
-    .metric span.green  { color: #27500a; }
-    .metric span.red    { color: #791f1f; }
+    .metric span.green { color: #27500a; }
+    .metric span.red   { color: #791f1f; }
 
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     thead th {
@@ -116,27 +112,25 @@
       font-weight: 500;
       white-space: nowrap;
     }
-    .badge-found    { background: #eaf3de; color: #27500a; }
-    .badge-missing  { background: #fcebeb; color: #791f1f; }
+    .badge-found   { background: #eaf3de; color: #27500a; }
+    .badge-missing { background: #fcebeb; color: #791f1f; }
 
     .missing-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-
     .table-wrap { overflow-x: auto; }
 
     @media (prefers-color-scheme: dark) {
-      body       { background: #18181a; color: #e8e6e0; }
-      .card      { background: #222224; border-color: rgba(255,255,255,0.1); }
-      input, textarea, select { background: #2a2a2c; border-color: rgba(255,255,255,0.15); color: #e8e6e0; }
+      body    { background: #18181a; color: #e8e6e0; }
+      .card   { background: #222224; border-color: rgba(255,255,255,0.1); }
+      input, textarea { background: #2a2a2c; border-color: rgba(255,255,255,0.15); color: #e8e6e0; }
       input:focus, textarea:focus { border-color: rgba(255,255,255,0.35); }
-      button     { color: #e8e6e0; border-color: rgba(255,255,255,0.2); }
+      button  { color: #e8e6e0; border-color: rgba(255,255,255,0.2); }
       button:hover { background: #2a2a2c; }
       button.primary { background: #e8e6e0; color: #18181a; border-color: #e8e6e0; }
       button.primary:hover { background: #cfcdc8; }
-      .metric    { background: #2a2a2c; color: #9e9d99; }
+      .metric { background: #2a2a2c; color: #9e9d99; }
       .metric span { color: #e8e6e0; }
       .alert-error   { background: #2d1a1a; border-color: #a32d2d; color: #f09595; }
       .alert-success { background: #1a2d1a; border-color: #3b6d11; color: #c0dd97; }
-      .alert-info    { background: #1a2540; border-color: #185fa5; color: #b5d4f4; }
       .subtitle, label, .hint, thead th { color: #9e9d99; }
       tbody tr:hover { background: #2a2a2c; }
       .badge-found   { background: #1a2d1a; color: #c0dd97; }
@@ -152,40 +146,34 @@
 
   <div id="loadStatus"></div>
 
-  <!-- Step 1 (now just search) -->
   <div class="card">
     <p class="card-title">Search IP addresses</p>
-    <label for="searchInput">Enter IPs to check — one per line, or comma/space separated</label>
-    <textarea id="searchInput" rows="5"
-      placeholder="163.116.192.203&#10;103.110.176.98&#10;192.168.1.1, 10.0.0.1"></textarea>
+    <label for="searchInput">Paste any text containing IPs — numbers, labels and extra text are ignored automatically</label>
+    <textarea id="searchInput" rows="6"
+      placeholder="20.104.201.101&#10;1.29k&#10;20.151.229.110&#10;423&#10;20.199.99.25&#10;344"></textarea>
+    <p class="hint">Accepts raw IPs, mixed text with counts (e.g. "20.104.201.101 1.29k"), comma or newline separated — only valid IPs are extracted.</p>
     <div class="row" style="margin-top:10px">
       <button class="primary" onclick="search()">Search</button>
       <button onclick="clearAll()">Clear</button>
     </div>
   </div>
 
-  <!-- Metrics -->
   <div class="metrics" id="metrics" style="display:none"></div>
-
-  <!-- Results -->
   <div id="results"></div>
 
 </div>
-
 <script>
   const IP_FILE_URL = "https://raw.githubusercontent.com/kckshitiz/my-fifth-repo/refs/heads/main/ip.txt";
-  let recordedIPs   = new Set();
-  let loaded        = false;
+  let recordedIPs = new Set();
+  let loaded      = false;
 
   async function loadIPs() {
     const box = document.getElementById('loadStatus');
     try {
-      const res = await fetch(IP_FILE_URL);
+      const res  = await fetch(IP_FILE_URL);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text  = await res.text();
-      const lines = text.split(/\r?\n/)
-                        .map(l => l.trim())
-                        .filter(l => l && !l.startsWith('#'));
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
       recordedIPs = new Set(lines.map(l => l.toLowerCase()));
       loaded = true;
       box.innerHTML = `<div class="alert alert-success">
@@ -198,35 +186,40 @@
 
   window.addEventListener('DOMContentLoaded', loadIPs);
 
-  function parseIPs(raw) {
-    return [...new Set(
-      raw.split(/[\n,;\s]+/)
-         .map(s => s.trim())
-         .filter(s => s.length > 0)
-    )];
+  function extractIPs(raw) {
+    // Match only valid IPv4 addresses — ignore anything else (counts, labels, k/m suffixes)
+    const ipRegex = /\b(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\b/g;
+    const matches = raw.match(ipRegex) || [];
+    return [...new Set(matches)];
   }
 
   function search() {
-    const raw     = document.getElementById('searchInput').value.trim();
+    const raw     = document.getElementById('searchInput').value;
     const results = document.getElementById('results');
     const metrics = document.getElementById('metrics');
 
-    if (!raw) {
+    if (!raw.trim()) {
       results.innerHTML = '<div class="alert alert-error">Please enter at least one IP address.</div>';
       return;
     }
     if (!loaded) {
-      results.innerHTML = '<div class="alert alert-error">Please load the IP list from GitHub first (Step 1).</div>';
+      results.innerHTML = '<div class="alert alert-error">IP list is still loading, please wait a moment and try again.</div>';
       return;
     }
 
-    const ips     = parseIPs(raw);
+    const ips     = extractIPs(raw);
+
+    if (ips.length === 0) {
+      results.innerHTML = '<div class="alert alert-error">No valid IP addresses found in the input.</div>';
+      return;
+    }
+
     const found   = ips.filter(ip => recordedIPs.has(ip.toLowerCase()));
     const missing = ips.filter(ip => !recordedIPs.has(ip.toLowerCase()));
 
     metrics.style.display = 'flex';
     metrics.innerHTML = `
-      <div class="metric"><span>${ips.length}</span>searched</div>
+      <div class="metric"><span>${ips.length}</span>IPs found in input</div>
       <div class="metric"><span class="green">${found.length}</span>in record</div>
       <div class="metric"><span class="red">${missing.length}</span>not in record</div>
     `;
@@ -248,7 +241,10 @@
         <div class="missing-list">
           ${missing.map(ip => `<span class="badge badge-missing">${ip}</span>`).join('')}
         </div>
-      </div>` : '';
+      </div>` : `
+      <div class="alert alert-success" style="margin-top:1rem">
+        All ${ips.length} IP${ips.length !== 1 ? 's' : ''} found in the allowlist record.
+      </div>`;
 
     results.innerHTML = `
       <div class="card" style="padding:0;overflow:hidden">
