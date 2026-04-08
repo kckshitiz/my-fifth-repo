@@ -150,28 +150,11 @@
   <h1>IP Address Lookup</h1>
   <p class="subtitle">Check whether IP addresses exist in your GitHub allowlist record</p>
 
-  <!-- Step 1 -->
-  <div class="card">
-    <p class="card-title">Step 1 — Load IP list from GitHub</p>
-    <div class="row">
-      <div class="field">
-        <label for="ghUrl">GitHub raw file URL</label>
-        <input id="ghUrl" type="url"
-          placeholder="https://raw.githubusercontent.com/Finsure/repo/main/ips.txt" />
-      </div>
-      <button class="primary" id="loadBtn" onclick="loadIPs()">Load IP list</button>
-    </div>
-    <p class="hint">
-      Go to your file on GitHub → click <strong>Raw</strong> → copy the URL.<br>
-      File format: one IP address per line. Lines starting with <code>#</code> are ignored.
-    </p>
-  </div>
-
   <div id="loadStatus"></div>
 
-  <!-- Step 2 -->
+  <!-- Step 1 (now just search) -->
   <div class="card">
-    <p class="card-title">Step 2 — Search IP addresses</p>
+    <p class="card-title">Search IP addresses</p>
     <label for="searchInput">Enter IPs to check — one per line, or comma/space separated</label>
     <textarea id="searchInput" rows="5"
       placeholder="163.116.192.203&#10;103.110.176.98&#10;192.168.1.1, 10.0.0.1"></textarea>
@@ -190,43 +173,30 @@
 </div>
 
 <script>
-  let recordedIPs = new Set();
-  let loaded = false;
+  const IP_FILE_URL = "https://raw.githubusercontent.com/kckshitiz/my-fifth-repo/blob/main/ip.txt";
+  let recordedIPs   = new Set();
+  let loaded        = false;
 
   async function loadIPs() {
-    const url = document.getElementById('ghUrl').value.trim();
     const box = document.getElementById('loadStatus');
-    const btn = document.getElementById('loadBtn');
-
-    if (!url) {
-      box.innerHTML = '<div class="alert alert-error">Please enter a GitHub raw file URL.</div>';
-      return;
-    }
-
-    btn.textContent = 'Loading...';
-    btn.disabled = true;
-    box.innerHTML = '';
-
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status} — make sure the URL points to a raw GitHub file`);
+      const res = await fetch(IP_FILE_URL);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text  = await res.text();
       const lines = text.split(/\r?\n/)
                         .map(l => l.trim())
                         .filter(l => l && !l.startsWith('#'));
-
       recordedIPs = new Set(lines.map(l => l.toLowerCase()));
       loaded = true;
       box.innerHTML = `<div class="alert alert-success">
-        Loaded <strong>${recordedIPs.size}</strong> IP record${recordedIPs.size !== 1 ? 's' : ''} successfully.
+        Loaded <strong>${recordedIPs.size}</strong> IP record${recordedIPs.size !== 1 ? 's' : ''} from allowlist.
       </div>`;
     } catch (e) {
-      box.innerHTML = `<div class="alert alert-error">Failed to load: ${e.message}</div>`;
+      box.innerHTML = `<div class="alert alert-error">Failed to load IP list: ${e.message}</div>`;
     }
-
-    btn.textContent = 'Load IP list';
-    btn.disabled = false;
   }
+
+  window.addEventListener('DOMContentLoaded', loadIPs);
 
   function parseIPs(raw) {
     return [...new Set(
