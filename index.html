@@ -227,7 +227,16 @@
     const rows = ips.map(ip => {
       const exists = recordedIPs.has(ip.toLowerCase());
       return `<tr>
-        <td class="mono">${ip}</td>
+        <td class="mono">
+          <span style="display:flex;align-items:center;gap:8px">
+            ${ip}
+            <button onclick="copyIP('${ip}', this)" title="Copy IP" style="
+              padding:2px 8px;font-size:11px;border-radius:6px;
+              border:0.5px solid rgba(0,0,0,0.2);background:transparent;
+              cursor:pointer;color:inherit;white-space:nowrap;min-width:48px
+            ">Copy</button>
+          </span>
+        </td>
         <td><span class="badge ${exists ? 'badge-found' : 'badge-missing'}">${exists ? 'Found' : 'Not found'}</span></td>
         <td style="font-size:12px;color:#5f5e5a">${exists
           ? 'IP exists in the allowlist record'
@@ -257,6 +266,17 @@
       </div>
       ${missingSection}
     `;
+  }
+
+  function copyIP(ip, btn) {
+    navigator.clipboard.writeText(ip).then(() => {
+      btn.textContent = 'Copied!';
+      btn.style.color = '#27500a';
+      setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 1500);
+    }).catch(() => {
+      btn.textContent = 'Failed';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+    });
   }
 
   function clearAll() {
