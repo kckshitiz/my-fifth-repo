@@ -168,8 +168,10 @@
 </div>
 <script>
   const IP_FILE_URL = "https://raw.githubusercontent.com/kckshitiz/my-fifth-repo/refs/heads/main/ip.txt";
-  let recordedIPs = new Set();
-  let loaded      = false;
+  let recordedIPs        = new Set();
+  let loaded             = false;
+  let confirmedAttackers = new Set();
+  let markedSafe         = new Set();
 
   async function loadIPs() {
     const box = document.getElementById('loadStatus');
@@ -191,7 +193,6 @@
   window.addEventListener('DOMContentLoaded', loadIPs);
 
   function extractIPs(raw) {
-    // Match only valid IPv4 addresses — ignore anything else (counts, labels, k/m suffixes)
     const ipRegex = /\b(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\b/g;
     const matches = raw.match(ipRegex) || [];
     return [...new Set(matches)];
@@ -212,7 +213,6 @@
     }
 
     const ips     = extractIPs(raw);
-
     if (ips.length === 0) {
       results.innerHTML = '<div class="alert alert-error">No valid IP addresses found in the input.</div>';
       return;
@@ -221,32 +221,42 @@
     const found   = ips.filter(ip => recordedIPs.has(ip.toLowerCase()));
     const missing = ips.filter(ip => !recordedIPs.has(ip.toLowerCase()));
 
+  let activeFilter = 'all';
+
     metrics.style.display = 'flex';
     metrics.innerHTML = `
-      <div class="metric"><span>${ips.length}</span>IPs found in input</div>
-      <div class="metric"><span class="green">${found.length}</span>in record</div>
-      <div class="metric"><span class="red">${missing.length}</span>not in record</div>
+      <div class="metric" onclick="filterRows('all')" id="filter-all" style="cursor:pointer;outline:2px solid #1c1c1a;outline-offset:2px">
+        <span>${ips.length}</span>IPs found in input</div>
+      <div class="metric" onclick="filterRows('found')" id="filter-found" style="cursor:pointer">
+        <span class="green">${found.length}</span>in record</div>
+      <div class="metric" onclick="filterRows('missing')" id="filter-missing" style="cursor:pointer">
+        <span class="red">${missing.length}</span>not in record</div>
     `;
 
     const rows = ips.map(ip => {
+      confirmedAttackers.add(ip);
       const exists = recordedIPs.has(ip.toLowerCase());
+      const safeId = `toggle-${ip.replace(/\./g,'-')}`;
       return `<tr>
         <td class="mono">
-          <span style="display:flex;align-items:center;gap:8px">
+          <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             ${ip}
-            <span style="display:flex;gap:4px">
-              <button onclick="addToFile('${ip}', this)" id="add-${ip.replace(/\./g,'-')}" style="
-                padding:2px 8px;font-size:11px;border-radius:6px;
-                border:0.5px solid #3b6d11;background:#3b6d11;
-                cursor:pointer;color:#fff;white-space:nowrap;min-width:80px
-              "
-              ">Safe</button>
-              <button onclick="markAttack('${ip}', this)" id="attack-${ip.replace(/\./g,'-')}" style="
-                padding:2px 8px;font-size:11px;border-radius:6px;
-                border:0.5px solid #a32d2d;background:transparent;
-                cursor:pointer;color:#791f1f;white-space:nowrap;min-width:64px
-              ">Attack</button>
-            </span>
+            <button
+              onclick="copyIP('${ip}', this)"
+              style="padding:2px 8px;font-size:11px;border-radius:6px;
+                border:0.5px solid rgba(0,0,0,0.2);background:transparent;
+                cursor:pointer;color:inherit;white-space:nowrap;min-width:48px">
+              Copy
+            </button>
+            <button
+              id="${safeId}"
+              data-state="attack"
+              onclick="toggleStatus('${ip}', this)"
+              style="padding:2px 8px;font-size:11px;border-radius:6px;
+                border:0.5px solid #a32d2d;background:#a32d2d;
+                cursor:pointer;color:#fff;white-space:nowrap;min-width:80px">
+              Attack
+            </button>
           </span>
         </td>
         <td><span class="badge ${exists ? 'badge-found' : 'badge-missing'}">${exists ? 'Found' : 'Not found'}</span></td>
@@ -255,6 +265,8 @@
           : 'IP is NOT in the record — action may be required'}</td>
       </tr>`;
     }).join('');
+
+    updateDownloadBtn();
 
     const missingSection = missing.length > 0 ? `
       <div class="card" style="margin-top:1rem">
@@ -280,124 +292,50 @@
     `;
   }
 
-  let confirmedAttackers = new Set();
-  let markedSafe        = new Set();
+  function filterRows(filter) {
+    activeFilter = filter;
+
+    // Update active outline on metric cards
+    ['all','found','missing'].forEach(f => {
+      const el = document.getElementById(`filter-${f}`);
+      if (el) el.style.outline = f === filter ? '2px solid #1c1c1a' : 'none';
+    });
+
+    // Show/hide rows based on filter
+    document.querySelectorAll('tbody tr').forEach(row => {
+      const badge = row.querySelector('.badge');
+      if (!badge) return;
+      const isFound = badge.classList.contains('badge-found');
+      if (filter === 'all')     row.style.display = '';
+      else if (filter === 'found')   row.style.display = isFound  ? '' : 'none';
+      else if (filter === 'missing') row.style.display = !isFound ? '' : 'none';
+    });
+  }
 
   function toggleStatus(ip, btn) {
     const row   = btn.closest('tr');
     const state = btn.dataset.state;
 
     if (state === 'none' || state === 'attack') {
-      // Switch to Safe
-      btn.dataset.state       = 'safe';
-      btn.textContent         = 'Safe';
-      btn.style.background    = '#3b6d11';
-      btn.style.color         = '#fff';
-      btn.style.borderColor   = '#3b6d11';
+      btn.dataset.state     = 'safe';
+      btn.textContent       = 'Safe';
+      btn.style.background  = '#3b6d11';
+      btn.style.color       = '#fff';
+      btn.style.borderColor = '#3b6d11';
       if (row) row.style.background = '#1a2d1a';
       confirmedAttackers.delete(ip);
       markedSafe.add(ip);
-    } else if (state === 'safe') {
-      // Switch to Attack
-      btn.dataset.state       = 'attack';
-      btn.textContent         = 'Attack';
-      btn.style.background    = '#a32d2d';
-      btn.style.color         = '#fff';
-      btn.style.borderColor   = '#a32d2d';
+    } else {
+      btn.dataset.state     = 'attack';
+      btn.textContent       = 'Attack';
+      btn.style.background  = '#a32d2d';
+      btn.style.color       = '#fff';
+      btn.style.borderColor = '#a32d2d';
       if (row) row.style.background = '#2d1a1a';
       markedSafe.delete(ip);
       confirmedAttackers.add(ip);
     }
     updateDownloadBtn();
-  }
-
-  function markSafe(ip, btn) {
-    const key        = ip.replace(/\./g, '-');
-    const attackBtn  = document.getElementById(`attack-${key}`);
-    const row        = btn.closest('tr');
-
-    if (markedSafe.has(ip)) {
-      markedSafe.delete(ip);
-      btn.style.background   = 'transparent';
-      btn.style.color        = '#27500a';
-      if (row) row.style.background = '';
-    } else {
-      markedSafe.add(ip);
-      confirmedAttackers.delete(ip);
-      btn.style.background   = '#3b6d11';
-      btn.style.color        = '#fff';
-      btn.style.borderColor  = '#3b6d11';
-      if (attackBtn) {
-        attackBtn.style.background  = 'transparent';
-        attackBtn.style.color       = '#791f1f';
-        attackBtn.style.borderColor = '#a32d2d';
-      }
-      if (row) row.style.background = '#1a2d1a';
-    }
-    updateDownloadBtn();
-  }
-
-  function markAttack(ip, btn) {
-    const key      = ip.replace(/\./g, '-');
-    const safeBtn  = document.getElementById(`safe-${key}`);
-    const row      = btn.closest('tr');
-
-    if (confirmedAttackers.has(ip)) {
-      confirmedAttackers.delete(ip);
-      btn.style.background   = 'transparent';
-      btn.style.color        = '#791f1f';
-      if (row) row.style.background = '';
-    } else {
-      confirmedAttackers.add(ip);
-      markedSafe.delete(ip);
-      btn.style.background   = '#a32d2d';
-      btn.style.color        = '#fff';
-      btn.style.borderColor  = '#a32d2d';
-      if (safeBtn) {
-        safeBtn.style.background  = 'transparent';
-        safeBtn.style.color       = '#27500a';
-        safeBtn.style.borderColor = '#3b6d11';
-      }
-      if (row) row.style.background = '#2d1a1a';
-    }
-    updateDownloadBtn();
-  }
-
-  function confirmAttack(ip, btn) {
-    confirmedAttackers.add(ip);
-    btn.textContent = 'Attack Confirmed';
-    btn.style.background = '#a32d2d';
-    btn.style.color = '#fff';
-    btn.style.borderColor = '#a32d2d';
-    btn.disabled = true;
-
-    const row = btn.closest('tr');
-    if (row) row.style.background = '#2d1a1a';
-
-    updateDownloadBtn();
-  }
-
-  function updateDownloadBtn() {
-    const btn = document.getElementById('downloadBtn');
-    if (!btn) return;
-    if (confirmedAttackers.size > 0) {
-      btn.style.display = 'inline-block';
-      btn.textContent = `Download confirmed attackers (${confirmedAttackers.size})`;
-    } else {
-      btn.style.display = 'none';
-    }
-  }
-
-  function downloadAttackers() {
-    if (confirmedAttackers.size === 0) return;
-    const content  = [...confirmedAttackers].join('\n');
-    const blob     = new Blob([content], { type: 'text/plain' });
-    const url      = URL.createObjectURL(blob);
-    const a        = document.createElement('a');
-    a.href         = url;
-    a.download     = `confirmed_attackers_${new Date().toISOString().slice(0,10)}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   function copyIP(ip, btn) {
@@ -409,6 +347,29 @@
       btn.textContent = 'Failed';
       setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
     });
+  }
+
+  function updateDownloadBtn() {
+    const btn = document.getElementById('downloadBtn');
+    if (!btn) return;
+    if (confirmedAttackers.size > 0) {
+      btn.style.display = 'inline-block';
+      btn.textContent   = `Download confirmed attackers (${confirmedAttackers.size})`;
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+
+  function downloadAttackers() {
+    if (confirmedAttackers.size === 0) return;
+    const content = [...confirmedAttackers].join('\n');
+    const blob    = new Blob([content], { type: 'text/plain' });
+    const url     = URL.createObjectURL(blob);
+    const a       = document.createElement('a');
+    a.href        = url;
+    a.download    = `confirmed_attackers_${new Date().toISOString().slice(0,10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function clearAll() {
