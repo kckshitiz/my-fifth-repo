@@ -282,20 +282,17 @@
   let confirmedAttackers = new Set();
 
   function confirmAttack(ip, btn) {
-    const confirmed = window.confirm(`Confirm attack from IP: ${ip}\n\nAre you sure you want to flag this IP as an attacker?`);
-    if (confirmed) {
-      confirmedAttackers.add(ip);
-      btn.textContent = 'Attack Confirmed';
-      btn.style.background = '#a32d2d';
-      btn.style.color = '#fff';
-      btn.style.borderColor = '#a32d2d';
-      btn.disabled = true;
+    confirmedAttackers.add(ip);
+    btn.textContent = 'Attack Confirmed';
+    btn.style.background = '#a32d2d';
+    btn.style.color = '#fff';
+    btn.style.borderColor = '#a32d2d';
+    btn.disabled = true;
 
-      const row = btn.closest('tr');
-      if (row) row.style.background = '#2d1a1a';
+    const row = btn.closest('tr');
+    if (row) row.style.background = '#2d1a1a';
 
-      updateDownloadBtn();
-    }
+    updateDownloadBtn();
   }
 
   function updateDownloadBtn() {
