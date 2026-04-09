@@ -235,16 +235,16 @@
           <span style="display:flex;align-items:center;gap:8px">
             ${ip}
             <span style="display:flex;gap:4px">
-              <button onclick="copyIP('${ip}', this)" title="Copy IP" style="
+              <button onclick="markSafe('${ip}', this)" id="safe-${ip.replace(/\./g,'-')}" style="
                 padding:2px 8px;font-size:11px;border-radius:6px;
-                border:0.5px solid rgba(0,0,0,0.2);background:transparent;
-                cursor:pointer;color:inherit;white-space:nowrap;min-width:48px
-              ">Copy</button>
-              <button onclick="confirmAttack('${ip}', this)" title="Confirm Attack" style="
+                border:0.5px solid #3b6d11;background:transparent;
+                cursor:pointer;color:#27500a;white-space:nowrap;min-width:56px
+              ">Safe</button>
+              <button onclick="markAttack('${ip}', this)" id="attack-${ip.replace(/\./g,'-')}" style="
                 padding:2px 8px;font-size:11px;border-radius:6px;
                 border:0.5px solid #a32d2d;background:transparent;
-                cursor:pointer;color:#791f1f;white-space:nowrap;min-width:100px
-              ">Confirm Attack</button>
+                cursor:pointer;color:#791f1f;white-space:nowrap;min-width:64px
+              ">Attack</button>
             </span>
           </span>
         </td>
@@ -280,6 +280,63 @@
   }
 
   let confirmedAttackers = new Set();
+  let markedSafe        = new Set();
+
+  function markSafe(ip, btn) {
+    const key        = ip.replace(/\./g, '-');
+    const attackBtn  = document.getElementById(`attack-${key}`);
+    const row        = btn.closest('tr');
+
+    if (markedSafe.has(ip)) {
+      // Toggle off
+      markedSafe.delete(ip);
+      btn.style.background   = 'transparent';
+      btn.style.color        = '#27500a';
+      if (row) row.style.background = '';
+    } else {
+      // Mark safe — clear attack if set
+      markedSafe.add(ip);
+      confirmedAttackers.delete(ip);
+      btn.style.background   = '#3b6d11';
+      btn.style.color        = '#fff';
+      btn.style.borderColor  = '#3b6d11';
+      if (attackBtn) {
+        attackBtn.style.background  = 'transparent';
+        attackBtn.style.color       = '#791f1f';
+        attackBtn.style.borderColor = '#a32d2d';
+      }
+      if (row) row.style.background = '#1a2d1a';
+    }
+    updateDownloadBtn();
+  }
+
+  function markAttack(ip, btn) {
+    const key      = ip.replace(/\./g, '-');
+    const safeBtn  = document.getElementById(`safe-${key}`);
+    const row      = btn.closest('tr');
+
+    if (confirmedAttackers.has(ip)) {
+      // Toggle off
+      confirmedAttackers.delete(ip);
+      btn.style.background   = 'transparent';
+      btn.style.color        = '#791f1f';
+      if (row) row.style.background = '';
+    } else {
+      // Mark attack — clear safe if set
+      confirmedAttackers.add(ip);
+      markedSafe.delete(ip);
+      btn.style.background   = '#a32d2d';
+      btn.style.color        = '#fff';
+      btn.style.borderColor  = '#a32d2d';
+      if (safeBtn) {
+        safeBtn.style.background  = 'transparent';
+        safeBtn.style.color       = '#27500a';
+        safeBtn.style.borderColor = '#3b6d11';
+      }
+      if (row) row.style.background = '#2d1a1a';
+    }
+    updateDownloadBtn();
+  }
 
   function confirmAttack(ip, btn) {
     confirmedAttackers.add(ip);
@@ -334,6 +391,7 @@
     document.getElementById('results').innerHTML = '';
     document.getElementById('metrics').style.display = 'none';
     confirmedAttackers.clear();
+    markedSafe.clear();
     updateDownloadBtn();
   }
 </script>
