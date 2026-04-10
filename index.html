@@ -6,125 +6,79 @@
   <title>IP Address Lookup</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f5f5f4;
-      color: #1c1c1a;
-      min-height: 100vh;
-      padding: 2rem 1rem;
+      background: #f5f5f4; color: #1c1c1a; min-height: 100vh; padding: 2rem 1rem;
     }
-
     .container { max-width: 800px; margin: 0 auto; }
-
     h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
     .subtitle { font-size: 13px; color: #5f5e5a; margin-bottom: 1.5rem; }
-
     .card {
-      background: #ffffff;
-      border: 0.5px solid rgba(0,0,0,0.12);
-      border-radius: 12px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 1rem;
+      background: #fff; border: 0.5px solid rgba(0,0,0,0.12);
+      border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem;
     }
-
     .card-title { font-size: 13px; font-weight: 500; margin-bottom: 12px; }
-
     label { font-size: 12px; color: #5f5e5a; display: block; margin-bottom: 4px; }
-
-    input, textarea, select {
-      width: 100%;
-      padding: 8px 12px;
-      border: 0.5px solid rgba(0,0,0,0.2);
-      border-radius: 8px;
-      font-size: 13px;
-      font-family: inherit;
-      background: #fff;
-      color: #1c1c1a;
-      outline: none;
-      transition: border-color 0.15s;
+    input, textarea {
+      width: 100%; padding: 8px 12px; border: 0.5px solid rgba(0,0,0,0.2);
+      border-radius: 8px; font-size: 13px; font-family: inherit;
+      background: #fff; color: #1c1c1a; outline: none; transition: border-color 0.15s;
     }
-
     input:focus, textarea:focus { border-color: rgba(0,0,0,0.4); }
     textarea { resize: vertical; font-family: "SF Mono", "Fira Code", monospace; }
-
     .row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
-
     button {
-      padding: 8px 16px;
-      border: 0.5px solid rgba(0,0,0,0.2);
-      border-radius: 8px;
-      background: transparent;
-      font-size: 13px;
-      font-family: inherit;
-      cursor: pointer;
-      color: #1c1c1a;
-      white-space: nowrap;
-      transition: background 0.1s;
+      padding: 8px 16px; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px;
+      background: transparent; font-size: 13px; font-family: inherit;
+      cursor: pointer; color: #1c1c1a; white-space: nowrap; transition: background 0.1s;
     }
     button:hover { background: #f1efe8; }
     button:active { transform: scale(0.98); }
     button.primary { background: #1c1c1a; color: #fff; border-color: #1c1c1a; }
     button.primary:hover { background: #3a3a38; }
-
-    .hint { font-size: 12px; color: #5f5e5a; margin-top: 8px; }
-
-    .alert {
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-bottom: 1rem;
+    a.btn {
+      display: inline-block; padding: 8px 16px; border: 0.5px solid rgba(0,0,0,0.2);
+      border-radius: 8px; font-size: 13px; font-family: inherit;
+      color: #1c1c1a; text-decoration: none; background: transparent;
+      white-space: nowrap; transition: background 0.1s;
     }
+    a.btn:hover { background: #f1efe8; }
+    .hint { font-size: 12px; color: #5f5e5a; margin-top: 8px; }
+    .alert { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 1rem; }
     .alert-error   { background: #fcebeb; border: 0.5px solid #f09595; color: #791f1f; }
     .alert-success { background: #eaf3de; border: 0.5px solid #97c459; color: #27500a; }
-
     .metrics { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
     .metric {
-      background: #f1efe8;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 12px;
-      color: #5f5e5a;
+      background: #f1efe8; border-radius: 8px; padding: 8px 14px;
+      font-size: 12px; color: #5f5e5a;
     }
     .metric span { display: block; font-size: 20px; font-weight: 500; color: #1c1c1a; }
     .metric span.green { color: #27500a; }
     .metric span.red   { color: #791f1f; }
-
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     thead th {
-      text-align: left;
-      font-weight: 500;
-      font-size: 11px;
-      color: #5f5e5a;
-      padding: 6px 8px;
-      border-bottom: 0.5px solid rgba(0,0,0,0.15);
+      text-align: left; font-weight: 500; font-size: 11px; color: #5f5e5a;
+      padding: 6px 8px; border-bottom: 0.5px solid rgba(0,0,0,0.15);
     }
     tbody tr { border-bottom: 0.5px solid rgba(0,0,0,0.08); }
     tbody tr:hover { background: #f9f9f7; }
     td { padding: 8px; vertical-align: middle; }
     td.mono { font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; }
-
     .badge {
-      display: inline-block;
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 500;
-      white-space: nowrap;
+      display: inline-block; font-size: 11px; padding: 2px 8px;
+      border-radius: 10px; font-weight: 500; white-space: nowrap;
     }
     .badge-found   { background: #eaf3de; color: #27500a; }
     .badge-missing { background: #fcebeb; color: #791f1f; }
-
     .missing-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .table-wrap { overflow-x: auto; }
-
     @media (prefers-color-scheme: dark) {
       body    { background: #18181a; color: #e8e6e0; }
       .card   { background: #222224; border-color: rgba(255,255,255,0.1); }
       input, textarea { background: #2a2a2c; border-color: rgba(255,255,255,0.15); color: #e8e6e0; }
       input:focus, textarea:focus { border-color: rgba(255,255,255,0.35); }
-      button  { color: #e8e6e0; border-color: rgba(255,255,255,0.2); }
-      button:hover { background: #2a2a2c; }
+      button, a.btn { color: #e8e6e0; border-color: rgba(255,255,255,0.2); }
+      button:hover, a.btn:hover { background: #2a2a2c; }
       button.primary { background: #e8e6e0; color: #18181a; border-color: #e8e6e0; }
       button.primary:hover { background: #cfcdc8; }
       .metric { background: #2a2a2c; color: #9e9d99; }
@@ -154,14 +108,12 @@
     <p class="hint">Accepts raw IPs, mixed text with counts (e.g. "20.104.201.101 1.29k"), comma or newline separated — only valid IPs are extracted.</p>
     <div class="row" style="margin-top:10px">
       <button class="primary" onclick="search()">Search</button>
-	   <button class="primary" onclick="window.location.href='https://github.com/kckshitiz/my-fifth-repo/edit/main/ip.txt'">
-  IP
-</button>
+      <a class="btn" href="https://github.com/kckshitiz/my-fifth-repo/blob/main/ip.txt" target="_blank">IP File</a>
       <button onclick="clearAll()">Clear</button>
       <button id="downloadBtn" onclick="downloadAttackers()" style="
-        display:none;background:#a32d2d;color:#fff;
-        border-color:#a32d2d;margin-left:auto
-      ">Download confirmed attackers (0)</button>
+        display:none;background:#a32d2d;color:#fff;border-color:#a32d2d;margin-left:auto">
+        Download confirmed attackers (0)
+      </button>
     </div>
   </div>
 
@@ -175,6 +127,7 @@
   let loaded             = false;
   let confirmedAttackers = new Set();
   let markedSafe         = new Set();
+  let activeFilter       = 'all';
 
   async function loadIPs() {
     const box = document.getElementById('loadStatus');
@@ -197,8 +150,7 @@
 
   function extractIPs(raw) {
     const ipRegex = /\b(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\b/g;
-    const matches = raw.match(ipRegex) || [];
-    return [...new Set(matches)];
+    return [...new Set(raw.match(ipRegex) || [])];
   }
 
   function search() {
@@ -215,7 +167,7 @@
       return;
     }
 
-    const ips     = extractIPs(raw);
+    const ips = extractIPs(raw);
     if (ips.length === 0) {
       results.innerHTML = '<div class="alert alert-error">No valid IP addresses found in the input.</div>';
       return;
@@ -224,7 +176,11 @@
     const found   = ips.filter(ip => recordedIPs.has(ip.toLowerCase()));
     const missing = ips.filter(ip => !recordedIPs.has(ip.toLowerCase()));
 
-  let activeFilter = 'all';
+    // Default all to Safe
+    confirmedAttackers.clear();
+    markedSafe.clear();
+    ips.forEach(ip => markedSafe.add(ip));
+    activeFilter = 'all';
 
     metrics.style.display = 'flex';
     metrics.innerHTML = `
@@ -237,29 +193,20 @@
     `;
 
     const rows = ips.map(ip => {
-      confirmedAttackers.add(ip);
       const exists = recordedIPs.has(ip.toLowerCase());
-      const safeId = `toggle-${ip.replace(/\./g,'-')}`;
+      const sid    = `toggle-${ip.replace(/\./g,'-')}`;
       return `<tr>
         <td class="mono">
           <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             ${ip}
-            <button
-              onclick="copyIP('${ip}', this)"
-              style="padding:2px 8px;font-size:11px;border-radius:6px;
-                border:0.5px solid rgba(0,0,0,0.2);background:transparent;
-                cursor:pointer;color:inherit;white-space:nowrap;min-width:48px">
-              Copy
-            </button>
-            <button
-              id="${safeId}"
-              data-state="safe"
-              onclick="toggleStatus('${ip}', this)"
-              style="padding:2px 8px;font-size:11px;border-radius:6px;
-                border:0.5px solid #a32d2d;background:#a32d2d;
-                cursor:pointer;color:#fff;white-space:nowrap;min-width:80px">
-              Attack
-            </button>
+            <button onclick="copyIP('${ip}', this)" style="
+              padding:2px 8px;font-size:11px;border-radius:6px;
+              border:0.5px solid rgba(0,0,0,0.2);background:transparent;
+              cursor:pointer;color:inherit;white-space:nowrap;min-width:48px">Copy</button>
+            <button id="${sid}" data-state="safe" onclick="toggleStatus('${ip}', this)" style="
+              padding:2px 8px;font-size:11px;border-radius:6px;
+              border:0.5px solid #3b6d11;background:#3b6d11;
+              cursor:pointer;color:#fff;white-space:nowrap;min-width:80px">Safe</button>
           </span>
         </td>
         <td><span class="badge ${exists ? 'badge-found' : 'badge-missing'}">${exists ? 'Found' : 'Not found'}</span></td>
@@ -268,8 +215,6 @@
           : 'IP is NOT in the record — action may be required'}</td>
       </tr>`;
     }).join('');
-
-    updateDownloadBtn();
 
     const missingSection = missing.length > 0 ? `
       <div class="card" style="margin-top:1rem">
@@ -293,37 +238,33 @@
       </div>
       ${missingSection}
     `;
+
+    updateDownloadBtn();
   }
 
   function filterRows(filter) {
     activeFilter = filter;
-
-    // Update active outline on metric cards
     ['all','found','missing'].forEach(f => {
       const el = document.getElementById(`filter-${f}`);
       if (el) el.style.outline = f === filter ? '2px solid #1c1c1a' : 'none';
     });
-
-    // Show/hide rows based on filter
     document.querySelectorAll('tbody tr').forEach(row => {
-      const badge = row.querySelector('.badge');
+      const badge   = row.querySelector('.badge');
       if (!badge) return;
       const isFound = badge.classList.contains('badge-found');
-      if (filter === 'all')     row.style.display = '';
-      else if (filter === 'found')   row.style.display = isFound  ? '' : 'none';
-      else if (filter === 'missing') row.style.display = !isFound ? '' : 'none';
+      row.style.display = filter === 'all' ? '' :
+                          filter === 'found'   &&  isFound ? '' :
+                          filter === 'missing' && !isFound ? '' : 'none';
     });
   }
 
   function toggleStatus(ip, btn) {
     const row   = btn.closest('tr');
     const state = btn.dataset.state;
-
-    if (state === 'none' || state === 'attack') {
+    if (state === 'attack') {
       btn.dataset.state     = 'safe';
       btn.textContent       = 'Safe';
       btn.style.background  = '#3b6d11';
-      btn.style.color       = '#fff';
       btn.style.borderColor = '#3b6d11';
       if (row) row.style.background = '#1a2d1a';
       confirmedAttackers.delete(ip);
@@ -332,7 +273,6 @@
       btn.dataset.state     = 'attack';
       btn.textContent       = 'Attack';
       btn.style.background  = '#a32d2d';
-      btn.style.color       = '#fff';
       btn.style.borderColor = '#a32d2d';
       if (row) row.style.background = '#2d1a1a';
       markedSafe.delete(ip);
@@ -355,22 +295,17 @@
   function updateDownloadBtn() {
     const btn = document.getElementById('downloadBtn');
     if (!btn) return;
-    if (confirmedAttackers.size > 0) {
-      btn.style.display = 'inline-block';
-      btn.textContent   = `Download confirmed attackers (${confirmedAttackers.size})`;
-    } else {
-      btn.style.display = 'none';
-    }
+    btn.style.display = confirmedAttackers.size > 0 ? 'inline-block' : 'none';
+    btn.textContent   = `Download confirmed attackers (${confirmedAttackers.size})`;
   }
 
   function downloadAttackers() {
     if (confirmedAttackers.size === 0) return;
-    const content = [...confirmedAttackers].join('\n');
-    const blob    = new Blob([content], { type: 'text/plain' });
-    const url     = URL.createObjectURL(blob);
-    const a       = document.createElement('a');
-    a.href        = url;
-    a.download    = `confirmed_attackers_${new Date().toISOString().slice(0,10)}.txt`;
+    const blob = new Blob([[...confirmedAttackers].join('\n')], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `confirmed_attackers_${new Date().toISOString().slice(0,10)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -381,9 +316,9 @@
     document.getElementById('metrics').style.display = 'none';
     confirmedAttackers.clear();
     markedSafe.clear();
+    activeFilter = 'all';
     updateDownloadBtn();
   }
 </script>
-
 </body>
 </html>
