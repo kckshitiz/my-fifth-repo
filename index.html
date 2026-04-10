@@ -132,7 +132,7 @@
   async function loadIPs() {
     const box = document.getElementById('loadStatus');
     try {
-      const res  = await fetch(IP_FILE_URL);
+      const res  = await fetch(IP_FILE_URL + '?t=' + Date.now(), { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text  = await res.text();
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
