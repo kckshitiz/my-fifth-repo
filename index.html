@@ -250,7 +250,7 @@
             </button>
             <button
               id="${safeId}"
-              data-state="attack"
+              data-state="safe"
               onclick="toggleStatus('${ip}', this)"
               style="padding:2px 8px;font-size:11px;border-radius:6px;
                 border:0.5px solid #a32d2d;background:#a32d2d;
@@ -316,7 +316,7 @@
     const row   = btn.closest('tr');
     const state = btn.dataset.state;
 
-    if (state === 'none' || state === 'safe') {
+    if (state === 'none' || state === 'attack') {
       btn.dataset.state     = 'safe';
       btn.textContent       = 'Safe';
       btn.style.background  = '#3b6d11';
