@@ -316,7 +316,7 @@
     const row   = btn.closest('tr');
     const state = btn.dataset.state;
 
-    if (state === 'none' || state === 'attack') {
+    if (state === 'none' || state === 'safe') {
       btn.dataset.state     = 'safe';
       btn.textContent       = 'Safe';
       btn.style.background  = '#3b6d11';
